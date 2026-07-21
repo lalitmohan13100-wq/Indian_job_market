@@ -1,41 +1,38 @@
-import streamlit as st
 import pandas as pd
 import plotly.express as px
+import streamlit as st
+import theme as th
 
+# 1. Page Configuration (Must be at the very top)
 st.set_page_config(
-    page_title="Executive Overview",
-    page_icon="📊",
-    layout="wide"
+    page_title="Indian Tech Jobs Analytics 2026", page_icon="📊", layout="wide"
 )
 
-df = pd.read_csv("cleaned_indian_tech_jobs_2026.csv")
-# -----------------------------
-# Load Dataset
-# -----------------------------
+
+# Apply Custom Theme
+th.apply_theme()
+
+# Load Data Once
 df = pd.read_csv("cleaned_indian_tech_jobs_2026.csv")
 
 # ==========================
 # Sidebar Filters
 # ==========================
-
 st.sidebar.header("🔍 Filter Dashboard")
 
-# City Filter
 selected_city = st.sidebar.selectbox(
     "Select City",
-    ["All"] + sorted(df["scraped_city"].dropna().unique().tolist())
+    ["All"] + sorted(df["scraped_city"].dropna().unique().tolist()),
 )
 
-# Work Mode Filter
 selected_workmode = st.sidebar.selectbox(
     "Select Work Mode",
-    ["All"] + sorted(df["work_mode"].dropna().unique().tolist())
+    ["All"] + sorted(df["work_mode"].dropna().unique().tolist()),
 )
 
-# Role Category Filter
 selected_role = st.sidebar.selectbox(
     "Select Role Category",
-    ["All"] + sorted(df["role_category"].dropna().unique().tolist())
+    ["All"] + sorted(df["role_category"].dropna().unique().tolist()),
 )
 
 # Apply Filters
@@ -50,171 +47,155 @@ if selected_workmode != "All":
 if selected_role != "All":
     filtered_df = filtered_df[filtered_df["role_category"] == selected_role]
 
-# -----------------------------
-# Sidebar
-# -----------------------------
+# Calculate Midpoint Salary
+filtered_df["salary_midpoint_lpa"] = (
+    filtered_df["salary_min_lpa"] + filtered_df["salary_max_lpa"]
+) / 2
+
+# ==========================
+# Main Content Area
+# ==========================
 st.title("💼 Indian Tech Job Market Analytics Dashboard 2026")
-
-
-
-
-
-
-
-
 st.markdown("### Executive Overview")
 st.markdown("---")
 
+# Key Metrics
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    st.metric("💼 Total Jobs", len(filtered_df))
+    st.metric("💼 Total Jobs", f"{len(filtered_df):,}")
 
 with col2:
-    st.metric("🏢 Total Companies", filtered_df["company_name"].nunique())
+    st.metric(
+        "🏢 Total Companies", f"{filtered_df['company_name'].nunique():,}"
+    )
 
 with col3:
-    st.metric("⭐ Avg Company Rating",
-              round(filtered_df["company_rating"].mean(),2))
+    avg_rating = filtered_df["company_rating"].mean()
+    st.metric(
+        "⭐ Avg Company Rating", f"{round(avg_rating, 2)}" if avg_rating else "N/A"
+    )
 
 with col4:
-    filtered_df["salary_midpoint_lpa"] = (filtered_df["salary_min_lpa"] + filtered_df["salary_max_lpa"]) / 2
-    avg_salary = df["salary_midpoint_lpa"].mean()
-    st.metric("💰 Avg Salary (LPA)",
-              round(avg_salary,2))
-    
-st.markdown("---")
-st.subheader("📊 Work Mode Distribution")
+    avg_salary = filtered_df["salary_midpoint_lpa"].mean()
+    st.metric(
+        "💰 Avg Salary (LPA)", f"₹{round(avg_salary, 2)}" if avg_salary else "N/A"
+    )
 
+st.markdown("---")
+
+# Work Mode Chart
+st.subheader("📊 Work Mode Distribution")
 work_mode_count = filtered_df["work_mode"].value_counts().reset_index()
 work_mode_count.columns = ["Work Mode", "Jobs"]
 
-fig = px.bar( work_mode_count,x="Work Mode",  y="Jobs",color="Work Mode",text="Jobs", title="Distribution of Jobs by Work Mode"
+fig_workmode = px.bar(
+    work_mode_count,
+    x="Work Mode",
+    y="Jobs",
+    color="Jobs",
+    color_continuous_scale=["#06B6D4", "#3B82F6"],
+    text="Jobs",
+    title="Distribution of Jobs by Work Mode",
 )
-
-st.plotly_chart(fig, use_container_width=True)
-
+st.plotly_chart(chart_theme(fig_workmode), use_container_width=True)
 
 st.markdown("---")
-st.subheader("🥧 Company Size Distribution")
 
+# Company Size Chart
+st.subheader("🥧 Company Size Distribution")
 company_size = filtered_df["company_size_bucket"].value_counts().reset_index()
 company_size.columns = ["Company Size", "Jobs"]
 
-fig = px.pie(
+fig_size = px.pie(
     company_size,
     names="Company Size",
     values="Jobs",
-    hole=0.5,
-    title="Company Size Distribution"
+    hole=0.6,
+    color_discrete_sequence=["#06B6D4", "#3B82F6", "#8B5CF6", "#EC4899"],
+    title="Company Size Distribution",
 )
-
-st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(chart_theme(fig_size), use_container_width=True)
 
 st.markdown("---")
+
+# Top Hiring Cities
 st.subheader("🏙️ Top 10 Hiring Cities")
-
 city_count = (
-    filtered_df["scraped_city"]
-    .value_counts()
-    .head(10)
-    .reset_index()
+    filtered_df["scraped_city"].value_counts().head(10).reset_index()
 )
-
 city_count.columns = ["City", "Jobs"]
 
-fig = px.bar(
+fig_city = px.bar(
     city_count,
     x="Jobs",
     y="City",
     orientation="h",
     color="Jobs",
+    color_continuous_scale=["#06B6D4", "#6366F1"],
     text="Jobs",
-    title="Top 10 Cities by Number of Job Openings"
+    title="Top 10 Cities by Number of Job Openings",
 )
-
-fig.update_layout(yaxis={"categoryorder": "total ascending"})
-
-st.plotly_chart(fig, use_container_width=True)
-
+fig_city.update_layout(yaxis={"categoryorder": "total ascending"})
+st.plotly_chart(chart_theme(fig_city), use_container_width=True)
 
 st.markdown("---")
+
+# Hiring Trend Over Time
 st.subheader("📈 Hiring Trend Over Time")
-
-filtered_df["posted_date_raw"] = pd.to_datetime(filtered_df["posted_date_raw"], errors="coerce")
-
+filtered_df["posted_date_raw"] = pd.to_datetime(
+    filtered_df["posted_date_raw"], errors="coerce"
+)
 trend = (
     filtered_df.groupby(filtered_df["posted_date_raw"].dt.date)
-      .size()
-      .reset_index(name="Jobs")
+    .size()
+    .reset_index(name="Jobs")
 )
 
-fig = px.line(
+fig_trend = px.line(
     trend,
     x="posted_date_raw",
     y="Jobs",
     markers=True,
-    title="Job Postings Over Time"
+    title="Job Postings Over Time",
 )
-
-st.plotly_chart(fig, use_container_width=True)
+fig_trend.update_traces(line_color="#06B6D4", marker=dict(color="#8B5CF6"))
+st.plotly_chart(chart_theme(fig_trend), use_container_width=True)
 
 st.markdown("---")
-st.subheader("⭐Company Rating vs Average Salary")
 
-fig5 = px.treemap(filtered_df,path=["company_rating", "salary_midpoint_lpa"],title="Company rating vs Average Salary"
-)
-
-st.plotly_chart(fig5, use_container_width=True)
-
-
-
-st.markdown("---")
+# Role Category Treemap
 st.subheader("🌳 Jobs by Role Category")
-
-role_count = (
-   filtered_df["role_category"]
-    .value_counts()
-    .reset_index()
-)
-
+role_count = filtered_df["role_category"].value_counts().reset_index()
 role_count.columns = ["Role", "Jobs"]
 
-fig = px.treemap(
+fig_role = px.treemap(
     role_count,
     path=["Role"],
     values="Jobs",
     color="Jobs",
-    title="Job Distribution by Role Category"
+    color_continuous_scale=["#0F172A", "#06B6D4", "#8B5CF6"],
+    title="Job Distribution by Role Category",
 )
-
-st.plotly_chart(fig, use_container_width=True)
-
-
-
-
+st.plotly_chart(chart_theme(fig_role), use_container_width=True)
 
 st.markdown("---")
+
+# Top Hiring Companies
 st.subheader("🏢 Top 10 Hiring Companies")
-
 top_companies = (
-    filtered_df["company_name"]
-    .value_counts()
-    .head(10)
-    .reset_index()
+    filtered_df["company_name"].value_counts().head(10).reset_index()
 )
-
 top_companies.columns = ["Company", "Jobs"]
 
-fig = px.bar(
+fig_companies = px.bar(
     top_companies,
     x="Company",
     y="Jobs",
     color="Jobs",
+    color_continuous_scale=["#3B82F6", "#8B5CF6"],
     text="Jobs",
-    title="Top 10 Companies by Number of Job Openings"
+    title="Top 10 Companies by Number of Job Openings",
 )
-
-fig.update_layout(xaxis_tickangle=-45)
-
-st.plotly_chart(fig, use_container_width=True)
+fig_companies.update_layout(xaxis_tickangle=-45)
+st.plotly_chart(chart_theme(fig_companies), use_container_width=True)
