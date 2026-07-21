@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import theme as th
 
 
 st.set_page_config(
@@ -8,7 +9,7 @@ st.set_page_config(
     page_icon="💰",
     layout="wide"
 )
-
+th.apply_theme()
 # Load Dataset
 df = pd.read_csv("cleaned_indian_tech_jobs_2026.csv")
 
