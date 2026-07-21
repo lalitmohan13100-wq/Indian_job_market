@@ -98,7 +98,7 @@ fig_workmode = px.bar(
     text="Jobs",
     title="Distribution of Jobs by Work Mode",
 )
-st.plotly_chart(chart_theme(fig_workmode), use_container_width=True)
+st.plotly_chart(th.chart_theme(fig_workmode), use_container_width=True)
 
 st.markdown("---")
 
@@ -115,7 +115,7 @@ fig_size = px.pie(
     color_discrete_sequence=["#06B6D4", "#3B82F6", "#8B5CF6", "#EC4899"],
     title="Company Size Distribution",
 )
-st.plotly_chart(chart_theme(fig_size), use_container_width=True)
+st.plotly_chart(th.chart_theme(fig_size), use_container_width=True)
 
 st.markdown("---")
 
@@ -137,7 +137,7 @@ fig_city = px.bar(
     title="Top 10 Cities by Number of Job Openings",
 )
 fig_city.update_layout(yaxis={"categoryorder": "total ascending"})
-st.plotly_chart(chart_theme(fig_city), use_container_width=True)
+st.plotly_chart(th.chart_theme(fig_city), use_container_width=True)
 
 st.markdown("---")
 
@@ -160,7 +160,7 @@ fig_trend = px.line(
     title="Job Postings Over Time",
 )
 fig_trend.update_traces(line_color="#06B6D4", marker=dict(color="#8B5CF6"))
-st.plotly_chart(chart_theme(fig_trend), use_container_width=True)
+st.plotly_chart(th.chart_theme(fig_trend), use_container_width=True)
 
 st.markdown("---")
 
@@ -177,7 +177,7 @@ fig_role = px.treemap(
     color_continuous_scale=["#0F172A", "#06B6D4", "#8B5CF6"],
     title="Job Distribution by Role Category",
 )
-st.plotly_chart(chart_theme(fig_role), use_container_width=True)
+st.plotly_chart(th.chart_theme(fig_role), use_container_width=True)
 
 st.markdown("---")
 
@@ -198,4 +198,4 @@ fig_companies = px.bar(
     title="Top 10 Companies by Number of Job Openings",
 )
 fig_companies.update_layout(xaxis_tickangle=-45)
-st.plotly_chart(chart_theme(fig_companies), use_container_width=True)
+st.plotly_chart(th.chart_theme(fig_companies), use_container_width=True)
