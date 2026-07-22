@@ -22,6 +22,39 @@ df["salary_midpoint_lpa"] = (
     df["salary_max_lpa"]
 ) / 2
 
+
+
+
+# Apply Filters
+filtered_df = df.copy()
+
+if selected_city != "All":
+    filtered_df = filtered_df[filtered_df["scraped_city"] == selected_city]
+
+if selected_workmode != "All":
+    filtered_df = filtered_df[filtered_df["work_mode"] == selected_workmode]
+
+if selected_role != "All":
+    filtered_df = filtered_df[filtered_df["role_category"] == selected_role]
+
+# Calculate Midpoint Salary
+filtered_df["salary_midpoint_lpa"] = (
+    filtered_df["salary_min_lpa"] + filtered_df["salary_max_lpa"]
+) / 2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
