@@ -23,6 +23,23 @@ df["salary_midpoint_lpa"] = (
 ) / 2
 
 
+st.sidebar.header("🔍 Filter Dashboard")
+
+selected_city = st.sidebar.selectbox(
+    "Select City",
+    ["All"] + sorted(df["scraped_city"].dropna().unique().tolist())
+)
+
+selected_workmode = st.sidebar.selectbox(
+    "Select Work Mode",
+    ["All"] + sorted(df["work_mode"].dropna().unique().tolist())
+)
+
+selected_role = st.sidebar.selectbox(
+    "Select Role Category",
+    ["All"] + sorted(df["role_category"].dropna().unique().tolist())
+)
+
 
 
 # Apply Filters
@@ -47,27 +64,19 @@ filtered_df["salary_midpoint_lpa"] = (
 
 
 
-
-
-
-
-
-
-
-
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    st.metric("Average Salary", f"{df['salary_midpoint_lpa'].mean():.2f} LPA")
+    st.metric("Average Salary", f"{filtered_df['salary_midpoint_lpa'].mean():.2f} LPA")
 
 with col2:
-    st.metric("Highest Salary", f"{df['salary_max_lpa'].max():.2f} LPA")
+    st.metric("Highest Salary", f"{filtered_df['salary_max_lpa'].max():.2f} LPA")
 
 with col3:
-    st.metric("Minimum Experience", f"{df['experience_min_yrs'].min()} Years")
+    st.metric("Minimum Experience", f"{filtered_df['experience_min_yrs'].min()} Years")
 
 with col4:
-    st.metric("Maximum Experience", f"{df['experience_max_yrs'].max()} Years")
+    st.metric("Maximum Experience", f"{filtered_df['experience_max_yrs'].max()} Years")
 
     st.markdown("---")
 st.subheader("📊 Salary Distribution")
@@ -84,7 +93,7 @@ salary_labels = [
     "50+ LPA"
 ]
 
-df["salary_range"] = pd.cut(
+filtered_df["salary_range"] = pd.cut(
     df["salary_midpoint_lpa"],
     bins=salary_bins,
     labels=salary_labels,
@@ -92,7 +101,7 @@ df["salary_range"] = pd.cut(
 )
 
 
-fig = px.histogram(df,x="salary_range",color="salary_range",title="Salary Distribution by Salary Range"
+fig = px.histogram(filtered_df,x="salary_range",color="salary_range",title="Salary Distribution by Salary Range"
 )
 
 fig.update_layout(
@@ -103,7 +112,7 @@ fig.update_layout(
 st.plotly_chart(fig, use_container_width=True)
 
 
-fig = px.histogram(df,x="experience_min_yrs",nbins=25,title="Distribution of Experience",color_discrete_sequence=["#0EA599"]
+fig = px.histogram(filtered_df,x="experience_min_yrs",nbins=25,title="Distribution of Experience",color_discrete_sequence=["#0EA599"]
 )
 
 fig.update_layout(
@@ -115,7 +124,7 @@ st.plotly_chart(fig, use_container_width=True)
 
 
 
-salary_role = df.groupby("role_category", as_index=False)["salary_midpoint_lpa"].mean()
+salary_role = filtered_df.groupby("role_category", as_index=False)["salary_midpoint_lpa"].mean()
 
 fig1 = px.bar(data_frame=salary_role,x="role_category",y="salary_midpoint_lpa",color="role_category",title="Average Salary by Role Category",text_auto=".1f"
 )
@@ -130,7 +139,7 @@ st.plotly_chart(fig1, use_container_width=True)
 
 
 
-salary_variation = df.groupby("experience_tier", as_index=False)["salary_midpoint_lpa"].mean()
+salary_variation = filtered_df.groupby("experience_tier", as_index=False)["salary_midpoint_lpa"].mean()
 
 fig1 = px.bar(data_frame=salary_variation,x="experience_tier",y="salary_midpoint_lpa",color="experience_tier",title="Salary variation across experience levels",text_auto=".1f"
 )
@@ -149,7 +158,7 @@ st.plotly_chart(fig1, use_container_width=True)
 st.markdown("---")
 st.subheader("")
 
-fig5 = px.treemap(df,path=["experience_min_yrs", "salary_midpoint_lpa"],title="experience vs salary distribution"
+fig5 = px.treemap(filtered_df,path=["experience_min_yrs", "salary_midpoint_lpa"],title="experience vs salary distribution"
 )
 
 st.plotly_chart(fig5, use_container_width=True)
